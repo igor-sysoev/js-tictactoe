@@ -1,6 +1,6 @@
 
-const playerFactory = (name, symbol) => {
-	return {name, symbol};
+const playerFactory = (name, symbol, isAi = false) => {
+	return {name, symbol, isAi};
 }
 
 const gameBoard = (	function ()	{
@@ -30,6 +30,22 @@ const gameBoard = (	function ()	{
 
 })();
 
+const botModule = ( function () {
+	const _squares = document.querySelectorAll('.square')
+	const getRandomNum = () => Math.floor(Math.random() * (8 - 0 + 1));
+	const getRandomLegalSquare = () => {
+		let botMove = _squares[getRandomNum()]
+		let botMoveIndex = botMove.dataset.attribute
+		while(gameBoard.boardArr[botMoveIndex] != null){
+			if(gameBoard.boardArr.every(val => val != null)) break;
+			botMove = _squares[getRandomNum()]
+			botMoveIndex = botMove.dataset.attribute
+		}
+		return botMove
+	}
+
+	return {getRandomLegalSquare};
+})()
 
 const game =  ( function() {
  	const _squares = document.querySelectorAll('.square')
@@ -41,17 +57,29 @@ const game =  ( function() {
  	let player1
 	let player2
 	let currentPlayer
-
+												
  	_squares.forEach(square => {
  		square.addEventListener('click', () =>{
  			if(!gameFinished){
-	 			makeMove(currentPlayer, square)
-	 			checkWin(getMoves(player1))
-	 			checkWin(getMoves(player2))
-	 			switchTurns(player1, player2);
+ 				if(square.innerText != '') return // avoids clicking the same spot to get AI to move
+
+	 			makeMove(currentPlayer, square);
+	 			checkWin(getMoves(player1), player1.name)
+
+	 			if(player2.isAi == true && !gameFinished){
+	 				setTimeout(function(){
+	 					makeMove(player2, botModule.getRandomLegalSquare())
+	 					checkWin(getMoves(player2), player2.name)
+	 				}, 250)
+	 			}
+	 			else{
+	 				switchTurns(player1, player2)
+	 				checkWin(getMoves(player2), player2.name)
+	 			}		
 	 		}
  		})
  	})
+
 
  	const updateMessage = (msg) => {
  		messageP.innerText = msg
@@ -62,24 +90,31 @@ const game =  ( function() {
  		if(names[1] == '') names[1] = 'Ol` dirty O'
  	}
 
- 	const setPlayers = () =>{
- 		const playerFormInputs = document.querySelector('.form-inputs')
- 		let formElements = [...playerFormInputs.elements]
- 		let names = formElements.map(element => element.value)
- 		setDefaultNames(names)
- 		player1 = playerFactory(names[0], 'X');
- 		player2 = playerFactory(names[1], 'O');
- 		currentPlayer = player1;
+ 	const setPlayers = (isBot = false) =>{
+ 		if(!isBot){
+ 			const playerFormInputs = document.querySelector('.form-inputs')
+	 		let formElements = [...playerFormInputs.elements]
+	 		let names = formElements.map(element => element.value)
+	 		setDefaultNames(names)
+	 		player1 = playerFactory(names[0], 'X');
+	 		player2 = playerFactory(names[1], 'O');
+	 		currentPlayer = player1;
+	 	}else{
+	 		player1 = playerFactory('Human', 'X');
+	 		player2 = playerFactory('AI', 'O', true);
+	 		currentPlayer = player1;
+	 	}
+ 		
  	}
 
- 	const checkWin = (moves) => {
+ 	const checkWin = (moves, name) => {
  		_winCombinations.forEach(combo => {
  			let counter = 0
  			moves.forEach(move => {
  				if(combo.includes(move)) counter++
  				if(counter == 3){
  					gameFinished = true;
- 					updateMessage(`${currentPlayer.name} has won!`)
+ 					updateMessage(`${name} has won!`)
  				}
  			})
  			if(counter < 3 && gameFinished != true && gameBoard.boardArr.every(val => val != null)){
@@ -95,14 +130,13 @@ const game =  ( function() {
  	}
 
 	const makeMove = (currentPlayer, square) => {
-		let index = square.dataset.attribute
-		if(gameBoard.boardArr[index]){
-			switchTurns(player1, player2);
-			return
-		};
-		gameBoard.boardArr[index] = currentPlayer.symbol
-		gameBoard.render()
-	}
+			let index = square.dataset.attribute
+			if(gameBoard.boardArr[index]){
+				return
+			};
+			gameBoard.boardArr[index] = currentPlayer.symbol
+			gameBoard.render()
+}
 
 	const getMoves = (player) => {
 		return gameBoard.boardArr.map((square, i) => {
@@ -110,16 +144,17 @@ const game =  ( function() {
 		}).filter(obj => obj != null)
 	}
 
-	const finishGame = () => {
-		gameFinished = false;
+	const fullReset = () => {
+		gameBoard.boardArr = [null, null, null, null, null, null, null, null, null]
+ 		gameBoard.resetBoard()
+ 		gameFinished = false;
+ 		currentPlayer = player1;
+ 		updateMessage(``);
 	}
-	const resetcurplayer = () => {
-		currentPlayer = player1
-	}
+
 	return{	setPlayers,
 		  	updateMessage,
-		  	finishGame,
-		  	resetcurplayer,
+		  	fullReset,
 		}
 })();
 
@@ -129,11 +164,27 @@ const frontController = (function(){
  	const _controlButton = document.querySelector('#controlButton')
  	const _gameForm = document.querySelector('.playerform')
  	const _PVPButton = document.querySelector('#OneButton')
- 	const _AIButton = document.querySelector('#AIbutton');
- 	const inputsDiv = document.querySelector('.inputs')
- 	const playerFormDiv = document.querySelector('.PVPform')
+ 	const _AIstart = document.querySelector('#AIbutton');
+ 	const _inputsDiv = document.querySelector('.inputs')
+ 	const _playerFormDiv = document.querySelector('.PVPform')
  	const _PVPStart = document.querySelector('#gameStart')
  	const _messageP = document.querySelector('#messageP')
+ 	const _menuBack = document.querySelector('#backToMenu')
+ 	const _isBot = true;
+
+ 	_AIstart.addEventListener('click', () => {
+ 		
+ 		_gameForm.style.opacity = 0;
+ 		setTimeout(() => {_gameForm.style.display = 'none'}, 350);
+ 		game.setPlayers(_isBot);
+ 	})
+ 	_menuBack.addEventListener('click', () => {
+ 		game.fullReset();
+ 		_gameForm.style.opacity = 1;
+ 		_gameForm.style.display = 'flex';
+ 		setTimeout(function(){_inputsDiv.style.top = '50%'}, 50)
+ 		_playerFormDiv.style.top = '200%'
+ 	})
 
  	_PVPStart.addEventListener('click', () => {
  		game.setPlayers();
@@ -142,16 +193,12 @@ const frontController = (function(){
  	})
 
  	_controlButton.addEventListener('click', () => {
- 		gameBoard.boardArr = [null, null, null, null, null, null, null, null, null]
- 		gameBoard.resetBoard()
- 		game.updateMessage(``)
- 		game.resetcurplayer();
- 		game.finishGame();
+ 		game.fullReset();
  	})
 
  	_PVPButton.addEventListener('click', () => {
- 		inputsDiv.style.top = '10%'
- 		playerFormDiv.style.top = '50%'
+ 		_inputsDiv.style.top = '10%'
+ 		_playerFormDiv.style.top = '50%'
  	});
 })()
 
