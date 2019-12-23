@@ -6,9 +6,11 @@
 
 body{
 	display: flex;
+	flex-direction: column;
 	justify-content: center;
 	align-items: center;
 	height: 100vh;
+	background-color: black;
 }
 #display {
 	display: grid;
@@ -17,10 +19,49 @@ body{
 }
 
 .square{
-	border: 0.2px solid black;
-
+	border: 0.2px solid white;
+	color: white;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	font-size: 3em;
+}
+
+#controlButton{
+	margin-top: 40px;
+}
+
+.playerform{
+	position: fixed;
+	z-index: 1;
+	height: 100%;
+	width: 100%;
+	background: white;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+}
+
+.playerform h1{
+	font-size: 5em;
+	margin-bottom: 10px;
+}
+
+.input{
+
+}
+
+.uiButton {
+	padding: 20px 40px;
+	background-color: black;
+	color: white;
+	transition: all 0.2s
+}
+
+.uiButton:hover{
+	transition: all 0.2s;
+	padding: 30px 70px;
+	background-color: white;
+	color: black;
 }
