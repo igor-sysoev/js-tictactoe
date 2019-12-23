@@ -41,6 +41,8 @@ body{
 	justify-content: center;
 	align-items: center;
 	flex-direction: column;
+	transition: opacity 0.5s;
+	opacity: 1;
 }
 
 .playerform h1{
@@ -48,8 +50,10 @@ body{
 	margin-bottom: 10px;
 }
 
-.input{
-
+.inputs{
+	position: absolute;
+	transition: all 0.5s;
+	top: 50%;
 }
 
 .uiButton {
@@ -64,4 +68,41 @@ body{
 	padding: 30px 70px;
 	background-color: white;
 	color: black;
+}
+
+.PVPform {
+	position: absolute;
+	top: 150%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background-color: black;
+	color: white;
+	
+	transition: all 0.5s;
+}
+
+.player{
+	margin: 20px;
+}
+
+#gameStart {
+	margin: 20px;
+}
+
+#gameStart:hover{
+	cursor: pointer;
+}
+
+#messageP {
+	color: white;
+	position: absolute;
+	top: 20px;
+}
+
+#backToMenu{
+	position: absolute;
+	left: 0;
+	top: 0;
+	padding: 10px 20px;
 }
